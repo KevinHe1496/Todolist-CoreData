@@ -15,7 +15,7 @@ struct SidebarView: View {
     
     var categoryFilters: [Filter] {
         categories.map { category in
-            Filter(id: category.id ?? UUID(), name: category.name ?? "No name", icon: "tag", category: category)
+            Filter(id: category.categoryID, name: category.categoryName, icon: "tag", category: category)
         }
     }
     
@@ -33,6 +33,7 @@ struct SidebarView: View {
                 ForEach(categoryFilters) { filter in
                     NavigationLink(value: filter) {
                         Label(filter.name, systemImage: filter.icon)
+                            .badge(filter.category?.categoryActiveTasks.count ?? 0)
                     }
                 }
             }
