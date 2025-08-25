@@ -27,12 +27,25 @@ class DataController: ObservableObject {
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(filePath: "/dev/null")
         }
-        
+        // debe unir automáticamente los cambios que ocurran en otros contextos del mismo persistentContainer.
         container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        // si hay un conflicto entre los datos locales y los del almacén persistente, los valores del objeto en memoria (en tu app) tienen prioridad sobre los que vienen de la base.
         container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
+        // Activa la opción para que Core Data emita notificaciones (.NSPersistentStoreRemoteChange) cada vez que haya cambios en el almacén (por ejemplo, si usas CloudKit o múltiples dispositivos).
         container.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: container.persistentStoreCoordinator, queue: .main, using: remoteStoreChanged(_:))
+        
+        // Cada vez que algo cambia remotamente en el almacén (otra app, otro dispositivo, otro contexto), se ejecutará tu función remoteStoreChanged.
+        NotificationCenter.default
+            .addObserver(
+                forName: .NSPersistentStoreRemoteChange,
+                object: container.persistentStoreCoordinator,
+                queue: .main,
+                using: remoteStoreChanged(
+                    _:
+                )
+            )
         
         container.loadPersistentStores { storeDescription, error in
             if let error {
@@ -41,6 +54,7 @@ class DataController: ObservableObject {
         }
     }
     
+    // Esta función notifica a SwiftUI que algo cambió en Core Data.
     func remoteStoreChanged(_ notification: Notification) {
         objectWillChange.send()
     }
