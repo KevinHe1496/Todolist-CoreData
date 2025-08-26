@@ -29,6 +29,24 @@ extension Task {
         return result.sorted()
     }
     
+    var taskCategoriesList: String {
+        guard let categories else { return "No categories"}
+        
+        if categories.count == 0 {
+            return "No categories"
+        } else {
+            return taskCategory.map(\.categoryName).formatted()
+        }
+    }
+    
+    var taskStatus: String {
+        if completed {
+            return "Closed"
+        } else {
+            return "Open"
+        }
+    }
+    
     static var example: Task {
         // 1. Creamos un "cuaderno de tareas" (no se guarda de verdad, solo sirve para practicar).
         let controller = DataController(inMemory: true)

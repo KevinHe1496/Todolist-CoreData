@@ -12,6 +12,7 @@ class DataController: ObservableObject {
     let container: NSPersistentCloudKitContainer
     
     @Published var selectedFilter: Filter? = Filter.all
+    @Published var selectedTask: Task?
     
     // Vista previa de datos de ejemplo para SwiftUI (modo preview)
     static var preview: DataController = {
@@ -116,5 +117,15 @@ class DataController: ObservableObject {
         delete(request2)
         
         save()
+    }
+    
+    func missingCategories(from task: Task) -> [Category] {
+        let request = Category.fetchRequest()
+        let allCategories = (try? container.viewContext.fetch(request)) ?? []
+        
+        let allCategoriesSet = Set(allCategories)
+        let difference = allCategoriesSet.symmetricDifference(task.taskCategory)
+        
+        return difference.sorted()
     }
 }

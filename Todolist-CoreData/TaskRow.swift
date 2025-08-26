@@ -22,7 +22,7 @@ struct TaskRow: View {
                         .font(.headline)
                         .lineLimit(1)
                     
-                    Text("No tasks")
+                    Text(task.taskCategoriesList)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }

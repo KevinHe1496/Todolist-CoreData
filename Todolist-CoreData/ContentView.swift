@@ -24,7 +24,7 @@ struct ContentView: View {
         return allTasks.sorted()
     }
     var body: some View {
-        List {
+        List(selection: $dataController.selectedTask) {
             ForEach(tasks) { task in
                 TaskRow(task: task)
             }

@@ -8,11 +8,22 @@
 import SwiftUI
 
 struct DetailView: View {
+    @EnvironmentObject var dataController: DataController
+    
     var body: some View {
-        Text("Detail")
+        VStack {
+            if let task = dataController.selectedTask {
+                TaskView(task: task)
+            } else {
+                NoTaskView()
+            }
+        }
+        .navigationTitle("Details")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
     DetailView()
+        .environmentObject(DataController())
 }
