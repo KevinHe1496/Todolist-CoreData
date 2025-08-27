@@ -14,6 +14,8 @@ class DataController: ObservableObject {
     @Published var selectedFilter: Filter? = Filter.all
     @Published var selectedTask: Task?
     
+    @Published var filterText = ""
+    
     // Vista previa de datos de ejemplo para SwiftUI (modo preview)
     static var preview: DataController = {
         let dataController = DataController(inMemory: true)
@@ -127,5 +129,24 @@ class DataController: ObservableObject {
         let difference = allCategoriesSet.symmetricDifference(task.taskCategory)
         
         return difference.sorted()
+    }
+    
+    func tasksForSelectedFilter() -> [Task] {
+        let filter = selectedFilter ?? .all
+        var predicates = [NSPredicate]()
+        
+        if let category = filter.category {
+            let categoryPredicate = NSPredicate(format: "categories CONTAIN %@", category)
+            predicates.append(categoryPredicate)
+        } else {
+            let datePredicate = NSPredicate(format: "modificationDate > %@", filter.minModificationDate as NSDate)
+            predicates.append(datePredicate)
+        }
+        
+        let request = Task.fetchRequest()
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+       let allTasks = (try? container.viewContext.fetch(request)) ?? []
+        return allTasks.sorted()
     }
 }
