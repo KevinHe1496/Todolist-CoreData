@@ -149,35 +149,82 @@ class DataController: ObservableObject {
     }
     
     func tasksForSelectedFilter() -> [Task] {
+        // Se obtiene el filtro seleccionado por el usuario.
+        // Si no hay ninguno, se usa el filtro "all" (todas las tareas).
         let filter = selectedFilter ?? .all
+        
+        // Aquí guardaremos las condiciones (predicados) para buscar en Core Data.
         var predicates = [NSPredicate]()
         
+        // Si el filtro tiene una categoría definida → solo traer tareas de esa categoría.
         if let category = filter.category {
-            let categoryPredicate = NSPredicate(format: "categories CONTAIN %@", category)
+            // Busca tareas que pertenezcan a la categoría seleccionada.
+            let categoryPredicate = NSPredicate(format: "categories CONTAINS %@", category)
             predicates.append(categoryPredicate)
         } else {
+            // Si no hay categoría, usa un filtro por fecha mínima de modificación.
             let datePredicate = NSPredicate(format: "modificationDate > %@", filter.minModificationDate as NSDate)
             predicates.append(datePredicate)
         }
         
+        // Si los filtros adicionales están activados (prioridad, estado, etc.)
         if filterEnabled {
+            // Si se seleccionó una prioridad (>= 0) → filtra solo esas tareas.
             if filterPriority >= 0 {
                 let priorityFilter = NSPredicate(format: "priority = %d", filterPriority)
                 predicates.append(priorityFilter)
             }
             
+            // Si el estado no es "all", entonces filtramos por abiertas/cerradas.
             if filterStatus != .all {
+                // Si el estado buscado es .closed → completed = true, caso contrario false.
                 let lookForClosed = filterStatus == .closed
                 let statusFilter = NSPredicate(format: "completed = %@", NSNumber(value: lookForClosed))
                 predicates.append(statusFilter)
             }
         }
         
+        // Creamos la petición para traer tareas de Core Data.
         let request = Task.fetchRequest()
+        
+        // Le pasamos todos los filtros combinados con AND (tienen que cumplirse todos).
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+        // Ordenamos las tareas según el tipo de orden (creación o modificación)
+        // y si se muestran primero las más nuevas o las más antiguas.
         request.sortDescriptors = [NSSortDescriptor(key: sortType.rawValue, ascending: sortNewestFirst)]
         
-       let allTasks = (try? container.viewContext.fetch(request)) ?? []
+        // Ejecutamos la petición y obtenemos las tareas.
+        // Si falla, devuelve un arreglo vacío [].
+        let allTasks = (try? container.viewContext.fetch(request)) ?? []
+        
+        // Finalmente, devuelve las tareas ordenadas alfabéticamente (por defecto Task es Comparable).
         return allTasks.sorted()
     }
+    
+    
+    func newCategory() {
+        let category = Category(context: container.viewContext)
+        category.id = UUID()
+        category.name = "New Category"
+        
+        save()
+    }
+    
+    func newTask() {
+        let task = Task(context: container.viewContext)
+        task.title = "New task"
+        task.creationDate = .now
+        task.priority = 1
+        
+        // asigna a la categoria que estamos creando el nuevo task
+        if let category = selectedFilter?.category {
+            task.addToCategories(category)
+        }
+        
+        save()
+        
+        selectedTask = task
+    }
+
 }

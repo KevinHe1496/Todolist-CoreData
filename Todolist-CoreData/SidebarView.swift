@@ -13,6 +13,10 @@ struct SidebarView: View {
     
     @FetchRequest(sortDescriptors: [SortDescriptor(\.name)]) var categories: FetchedResults<Category>
     
+    @State private var categoryToRename: Category?
+    @State private var renamingCategory = false
+    @State private var categoryName = ""
+    
     var categoryFilters: [Filter] {
         categories.map { category in
             Filter(id: category.categoryID, name: category.categoryName, icon: "tag", category: category)
@@ -34,6 +38,13 @@ struct SidebarView: View {
                     NavigationLink(value: filter) {
                         Label(filter.name, systemImage: filter.icon)
                             .badge(filter.category?.categoryActiveTasks.count ?? 0)
+                            .contextMenu {
+                                Button {
+                                    rename(filter)
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                            }
                     }
                 }
                 .onDelete(perform: delete)
@@ -41,12 +52,25 @@ struct SidebarView: View {
             }
         }
         .toolbar {
+            
+            
+            Button(action: dataController.newCategory) {
+                Label("Add category", systemImage: "plus")
+            }
+            
+#if DEBUG
             Button {
                 dataController.deleteAll()
                 dataController.createSampleData()
             } label: {
                 Label("ADD SAMPLES", systemImage: "flame")
             }
+#endif
+        }
+        .alert("Rename category", isPresented: $renamingCategory) {
+            Button("OK", action: completeRename)
+            Button("Cancel", role: .cancel) { }
+            TextField("New name", text: $categoryName)
         }
     }
     
@@ -55,6 +79,17 @@ struct SidebarView: View {
             let item = categories[offset]
             dataController.delete(item)
         }
+    }
+    
+    func rename(_ filter: Filter) {
+        categoryToRename = filter.category
+        categoryName = filter.name
+        renamingCategory = true
+    }
+    
+    func completeRename() {
+        categoryToRename?.name = categoryName
+        dataController.save()
     }
 }
 
