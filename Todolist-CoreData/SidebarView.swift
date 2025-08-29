@@ -17,6 +17,8 @@ struct SidebarView: View {
     @State private var renamingCategory = false
     @State private var categoryName = ""
     
+    @State private var showingAwards = false
+    
     var categoryFilters: [Filter] {
         categories.map { category in
             Filter(id: category.categoryID, name: category.categoryName, icon: "tag", category: category)
@@ -58,6 +60,12 @@ struct SidebarView: View {
                 Label("Add category", systemImage: "plus")
             }
             
+            Button {
+                showingAwards.toggle()
+            } label: {
+                Label("Show awards", systemImage: "rosette")
+            }
+            
 #if DEBUG
             Button {
                 dataController.deleteAll()
@@ -72,6 +80,7 @@ struct SidebarView: View {
             Button("Cancel", role: .cancel) { }
             TextField("New name", text: $categoryName)
         }
+        .sheet(isPresented: $showingAwards, content: AwardsView.init)
     }
     
     func delete(_ offsets: IndexSet) {
