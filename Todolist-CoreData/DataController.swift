@@ -199,7 +199,7 @@ class DataController: ObservableObject {
         let allTasks = (try? container.viewContext.fetch(request)) ?? []
         
         // Finalmente, devuelve las tareas ordenadas alfabéticamente (por defecto Task es Comparable).
-        return allTasks.sorted()
+        return allTasks
     }
     
     

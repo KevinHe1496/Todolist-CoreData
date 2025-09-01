@@ -61,6 +61,25 @@ struct TaskView: View {
             }
         }
         .disabled(task.isDeleted)
+        .onSubmit(dataController.save)
+        .toolbar {
+            Menu {
+                Button {
+                    UIPasteboard.general.string = task.title
+                } label: {
+                    Label("Copy Task Title", systemImage: "doc.on.doc")
+                }
+                
+                Button {
+                    task.completed.toggle()
+                    dataController.save()
+                } label: {
+                    Label(task.completed ? "Re-open Task" : "Close Task", systemImage: "bubble.left.and.exclamationmark.bubble.right")
+                }
+            } label: {
+                Label("Actions", systemImage: "ellipsis.circle")
+            }
+        }
     }
 }
 
